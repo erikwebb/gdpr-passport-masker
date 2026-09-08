@@ -62,11 +62,11 @@ on run
 
     tell application "Finder"
         activate
-        set layoutDialog to display dialog "Select Passport Image Layout:" with title "Secure Passport Redactor" buttons {"Photo + Signature (12.5%)", "Photo Page Only (25%)"} default button "Photo Page Only (25%)"
+        set layoutDialog to display dialog "Select Passport Image Layout:" with title "Secure Passport Redactor" buttons {"Photo + Signature", "Photo Page Only"} default button "Photo Page Only"
         set layoutChoice to button returned of layoutDialog
     end tell
 
-    if layoutChoice contains "25%" then
+    if layoutChoice contains "Photo Page Only" then
         set layoutNum to "1"
     else
         set layoutNum to "2"
@@ -115,11 +115,11 @@ done
 ## Redaction & Watermark Layout Options
 
 - **Option 1 (Photo Page Only)**:
-  - Solid Black Redaction Box: Bottom **25%** (MRZ code lines).
-  - Diagonal Watermark: Top-down **25% – 75%** height.
+  - Solid Black Redaction Box: Bottom MRZ code lines with margin gap.
+  - Diagonal Watermark: Top-down **25% – 82%** height.
 - **Option 2 (Photo + Signature Pages)**:
-  - Solid Black Redaction Box: Bottom **12.5%**.
-  - Diagonal Watermark: Top-down **37.5% – 87.5%** height.
+  - Solid Black Redaction Box: Bottom MRZ code lines with margin gap.
+  - Diagonal Watermark: Top-down **37.5% – 92%** height.
 
 ---
 

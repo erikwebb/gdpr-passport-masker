@@ -46,30 +46,39 @@ let rect = CGRect(x: 0, y: 0, width: width, height: height)
 context.draw(cgImage, in: rect)
 
 // In top-down image space (0% = top, 100% = bottom):
-// Option 1 (Photo Only):
-//   - Black Box: 75% to 100% (bottom 25%)
-//   - Watermark: 25% to 75%
+// Option 1 (Photo Page Only):
+//   - Black Box: Bottom 18% with inset gap
+//   - Watermark: 18% to 75%
 // Option 2 (Photo + Signature):
-//   - Black Box: 87.5% to 100% (bottom 12.5%)
-//   - Watermark: 37.5% to 87.5%
+//   - Black Box: Bottom 8% with inset gap
+//   - Watermark: 8% to 62.5%
 
 let blackBoxPercent: Double
 let wmMinYPercent: Double
 let wmMaxYPercent: Double
 
 if layoutChoice == "1" {
-    blackBoxPercent = 0.25
-    wmMinYPercent = 0.25
+    blackBoxPercent = 0.18
+    wmMinYPercent = 0.18
     wmMaxYPercent = 0.75
 } else {
-    blackBoxPercent = 0.125
-    wmMinYPercent = 0.125  // 1.0 - 0.875 (starts above black box)
-    wmMaxYPercent = 0.625  // 1.0 - 0.375
+    blackBoxPercent = 0.08
+    wmMinYPercent = 0.08
+    wmMaxYPercent = 0.625
 }
 
-// 2. Draw solid black redaction bar at bottom
-let blackBarHeight = Double(height) * blackBoxPercent
-let blackBarRect = CGRect(x: 0, y: 0, width: Double(width), height: blackBarHeight)
+// 2. Draw solid black redaction bar with a small inset gap around edges
+let insetX = max(10.0, Double(width) * 0.03)
+let insetY = max(6.0, Double(height) * 0.015)
+let barHeight = max(12.0, (Double(height) * blackBoxPercent) - (insetY * 0.5))
+
+let blackBarRect = CGRect(
+    x: insetX,
+    y: insetY,
+    width: Double(width) - (2 * insetX),
+    height: barHeight
+)
+
 context.setFillColor(NSColor.black.cgColor)
 context.fill(blackBarRect)
 

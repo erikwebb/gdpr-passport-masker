@@ -61,8 +61,8 @@ fi
 if [ -z "$LAYOUT_CHOICE" ]; then
     if [ -t 0 ]; then
         print "What does this image include?"
-        print "1) Photo Page Only (Censors bottom 25%, Watermarks 25-75%)"
-        print "2) Photo + Signature Pages (Censors bottom 12.5%, Watermarks 37.5-87.5%)"
+        print "1) Photo Page Only"
+        print "2) Photo + Signature Pages"
         print -n "Select 1 or 2 [Default: 1]: "
         read LAYOUT_CHOICE
     fi
