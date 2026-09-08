@@ -1,72 +1,28 @@
-# Secure Passport Redactor for macOS
+# GDPR Passport Masker for macOS
 
-A macOS CLI utility & AppleScript Finder app to automatically redact Machine Readable Zone (MRZ) data and watermark passport scans when checking into European hotels & accommodations under GDPR compliance.
-
-## Privacy & Legal Context (GDPR)
-Under **GDPR Article 5.1(c) (Data Minimization)** and rulings by European Data Protection Authorities (e.g. Spain's AEPD, Netherlands AP):
-- Hotels have a legal duty to inspect your identity and report guest text data (Name, Date of Birth, Passport #).
-- **However**, hotels are generally **not authorized to scan, photocopy, or store full images of identity documents**.
-- Passports contain excessive data (facial photos, signatures, MRZ security codes) not required by guest registration laws.
-
-This tool helps travelers redact non-essential zones (MRZ code lines) and watermark the passport image with `"FOR [HOTEL] CHECK-IN ONLY"` to prevent unauthorized reuse or identity fraud.
+A macOS CLI utility & Finder AppleScript app to automatically redact Machine Readable Zone (MRZ) data and watermark passport scans when checking into European hotels & accommodations under GDPR compliance.
 
 ---
 
-## Installation & Setup
+## Quick One-Line Installation
 
-1. **Clone/Save files into `~/bin`**:
-   ```bash
-   mkdir -p ~/bin
-   ```
+Run this single command in your macOS Terminal to download the files, compile the Swift engine, update your `PATH`, and set up `~/bin`:
 
-2. **Compile the Swift Redactor Engine**:
-   ```bash
-   swiftc redact_passport.swift -o ~/bin/redact_passport
-   ```
-
-3. **Make the Zsh script executable**:
-   ```bash
-   chmod +x secure_passport.sh
-   ln -sf ~/bin/secure_passport.sh ~/bin/secure_passport
-   ```
-
-4. **Ensure `~/bin` is in your `PATH`**:
-   Add this line to your `~/.zshrc`:
-   ```bash
-   export PATH="$HOME/bin:$PATH"
-   ```
-
----
-
-## Usage
-
-### 1. Terminal / CLI Mode
 ```bash
-# Interactive mode (uses selected Finder image or opens file picker):
-secure_passport
-
-# Command line mode:
-secure_passport /path/to/passport.jpg "Gran Hotel Madrid" 1
-
-# Batch process images in a loop:
-for f in ~/Desktop/*.jpg; do
-    secure_passport "$f" "Hotel Milano" 1
-done
+mkdir -p ~/bin && \
+curl -sL https://gist.githubusercontent.com/erikwebb/84ac1b6092fd2211294fa21c96d10187/raw/gdpr_passport_masker.sh -o ~/bin/gdpr_passport_masker.sh && \
+curl -sL https://gist.githubusercontent.com/erikwebb/84ac1b6092fd2211294fa21c96d10187/raw/redact_passport.swift -o ~/bin/redact_passport.swift && \
+chmod +x ~/bin/gdpr_passport_masker.sh && \
+ln -sf ~/bin/gdpr_passport_masker.sh ~/bin/secure_passport && \
+swiftc ~/bin/redact_passport.swift -o ~/bin/redact_passport && \
+grep -q 'HOME/bin' ~/.zshrc 2>/dev/null || echo '\nexport PATH="$HOME/bin:$PATH"' >> ~/.zshrc
 ```
 
-### 2. Layout Options
-- **Option 1 (Photo Page Only)**:
-  - Solid Black Redaction Box: Bottom **25%** (MRZ code lines).
-  - Diagonal Watermark: Top-down **25% – 75%** height.
-- **Option 2 (Photo + Signature Pages)**:
-  - Solid Black Redaction Box: Bottom **12.5%**.
-  - Diagonal Watermark: Top-down **37.5% – 87.5%** height.
-
 ---
 
-## macOS Desktop App Shortcut
+## Desktop App Shortcut Creation
 
-To create a double-clickable Desktop shortcut that integrates directly with Finder:
+To create a double-clickable **`Secure Passport.app`** on your Desktop:
 
 ```bash
 cat << 'EOF' > /tmp/secure_passport_app.applescript
@@ -135,5 +91,41 @@ rm /tmp/secure_passport_app.applescript
 
 ---
 
-## License
-MIT License
+## Usage
+
+### 1. Desktop App Mode
+Double-click **`Secure Passport.app`** on your Desktop. Highlight a passport scan in Finder first, or select one from the file picker when prompted.
+
+### 2. Terminal CLI Mode
+```bash
+# Interactive mode:
+secure_passport
+
+# Direct arguments mode:
+secure_passport /path/to/passport.jpg "Gran Hotel Madrid" 1
+
+# Batch process images in a loop:
+for f in ~/Desktop/*.jpg; do
+    secure_passport "$f" "Hotel Milano" 1
+done
+```
+
+---
+
+## Redaction & Watermark Layout Options
+
+- **Option 1 (Photo Page Only)**:
+  - Solid Black Redaction Box: Bottom **25%** (MRZ code lines).
+  - Diagonal Watermark: Top-down **25% – 75%** height.
+- **Option 2 (Photo + Signature Pages)**:
+  - Solid Black Redaction Box: Bottom **12.5%**.
+  - Diagonal Watermark: Top-down **37.5% – 87.5%** height.
+
+---
+
+## Privacy & Legal Context (GDPR)
+Under **GDPR Article 5.1(c) (Data Minimization)** and rulings by European Data Protection Authorities (e.g. Spain's AEPD, Netherlands AP):
+- Accommodations must verify identity and report guest text data (Name, Date of Birth, Passport #).
+- **Accommodations are generally prohibited from scanning, photocopying, or storing full images of passports**, as passports contain unneeded sensitive data (photographs, signatures, security numbers).
+
+This tool creates a safe redacted & watermarked copy preventing unauthorized identity theft or reuse.
