@@ -33,9 +33,9 @@ fi
 if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
     echo "[+] No file specified. Opening GDPR Passport Masker in your browser..."
     if [ -f "$SCRIPT_DIR/index.html" ]; then
-        open "https://erikwebb.github.io/tools/passport-masker/" 2>/dev/null || open "$SCRIPT_DIR/index.html"
+        open "https://erikwebb.github.io/gdpr-passport-masker/" 2>/dev/null || open "$SCRIPT_DIR/index.html"
     else
-        open "https://erikwebb.github.io/tools/passport-masker/"
+        open "https://erikwebb.github.io/gdpr-passport-masker/"
     fi
     exit 0
 fi

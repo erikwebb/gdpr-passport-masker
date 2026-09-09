@@ -2,8 +2,8 @@
 
 A private, client-side web application and macOS CLI utility to automatically redact Machine Readable Zone (MRZ) biometric data and apply anti-tamper check-in watermarks to passport scans for European accommodation check-ins under GDPR data minimization compliance.
 
-🌐 **Live Web Application**: **[https://erikwebb.github.io/tools/passport-masker/](https://erikwebb.github.io/tools/passport-masker/)**  
-Part of the **[Erik Webb Tools Collection](https://erikwebb.github.io/#tools)**.
+🌐 **Live Web Application**: **[https://erikwebb.github.io/gdpr-passport-masker/](https://erikwebb.github.io/gdpr-passport-masker/)**  
+Part of the **[Erik Webb Tools Collection](https://erikwebb.github.io/)**.
 
 ---
 
