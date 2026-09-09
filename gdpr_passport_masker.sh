@@ -1,5 +1,14 @@
 #!/bin/zsh
 
+# Dynamically resolve script directory even when executed via symlink
+SCRIPT_DIR="${0:A:h}"
+REDACT_BIN="$SCRIPT_DIR/redact_passport"
+
+# Auto-compile Swift binary if not present or if source has been modified
+if [ ! -f "$REDACT_BIN" ] || [ "$SCRIPT_DIR/redact_passport.swift" -nt "$REDACT_BIN" ]; then
+    swiftc "$SCRIPT_DIR/redact_passport.swift" -o "$REDACT_BIN"
+fi
+
 FILE_PATH="$1"
 HOTEL_NAME="$2"
 LAYOUT_CHOICE="$3"
@@ -40,7 +49,7 @@ fi
 
 if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
     echo "[-] Error: No file selected and no valid file path provided."
-    echo "Usage: $0 [/path/to/passport_image.jpg] [Hotel Name] [Layout: 1 or 2]"
+    echo "Usage: $0 [/path/to/passport_image.jpg] [Hotel Name]"
     exit 1
 fi
 
@@ -57,20 +66,6 @@ if [ -z "$HOTEL_NAME" ]; then
     fi
 fi
 
-# 3. Determine Layout Choice (interactive prompt with default or fallback for loop testing)
-if [ -z "$LAYOUT_CHOICE" ]; then
-    if [ -t 0 ]; then
-        print "What does this image include?"
-        print "1) Photo Page Only"
-        print "2) Photo + Signature Pages"
-        print -n "Select 1 or 2 [Default: 1]: "
-        read LAYOUT_CHOICE
-    fi
-    if [ -z "$LAYOUT_CHOICE" ]; then
-        LAYOUT_CHOICE="1"
-    fi
-fi
-
 # Sanitize hotel name for filename placement
 HOTEL_CLEAN=$(echo "$HOTEL_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | sed 's/__*/_/g')
 if [ -z "$HOTEL_CLEAN" ]; then
@@ -83,6 +78,7 @@ FILE_NAME=$(basename "$FILE_PATH")
 TARGET_PATH="$DESKTOP_PATH/secured_${HOTEL_CLEAN}_$FILE_NAME"
 
 # Execute solid black-out censorship and watermark using compiled Swift redactor
-"$HOME/bin/redact_passport" "$FILE_PATH" "$TARGET_PATH" "$LAYOUT_CHOICE" "$HOTEL_NAME"
+# Automatically detects single photo page vs two-page spread (or accepts optional override)
+"$REDACT_BIN" "$FILE_PATH" "$TARGET_PATH" "$HOTEL_NAME" "${LAYOUT_CHOICE:-auto}"
 
 echo "[+] Success! Redacted & watermarked copy saved to Desktop: secured_${HOTEL_CLEAN}_$FILE_NAME"
