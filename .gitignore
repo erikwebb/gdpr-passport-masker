@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Compiled binaries & debugging symbols
+redact_passport
+*.o
+*.dSYM/
+
+# Editor & IDE configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files & test scans
+*.tmp
+*.bak
+*.log
+secured_*
+test_*
+.env
