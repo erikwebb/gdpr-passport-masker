@@ -20,7 +20,7 @@ This tool creates a secure, redacted, and watermarked document that prevents ide
 ## Features
 
 - **100% Client-Side Privacy**: All processing runs in memory inside your browser using HTML5 Canvas. Zero images, scans, or text are ever transmitted across the network.
-- **AI & OCR Friendly**: Watermarks use translucent red without harsh black borders, and document type headers (`PASSPORT`, `UNITED STATES OF AMERICA`, `P USA`) are kept unobstructed so automated verification systems (Onfido, Veriff, Jumio, Numa) recognize the document without error.
+- **AI & OCR Friendly**: Watermarks use translucent red without harsh black borders, and document type headers (`PASSPORT`, `UNITED STATES OF AMERICA`, `P USA`) are kept unobstructed so automated verification systems (Onfido, Veriff, Jumio) recognize the document without error.
 - **Universal Format Support**: Drag and drop standard images (PNG, JPG, WebP), iPhone camera photos (HEIC), and multi-page PDFs rendered at crisp 300 DPI scan resolution.
 - **Intelligent Layout Auto-Detection**: Automatically detects two-page vertical passport spreads vs. single photo page crops from the aspect ratio.
 - **Live Visual Inspection**: Real-time canvas preview and one-click download for high-resolution output.
@@ -38,7 +38,7 @@ For quick access directly from your terminal or Finder:
 secure_passport
 
 # Open and preload a specific scan and hotel name:
-secure_passport /path/to/passport.jpg "Numa Florence"
+secure_passport /path/to/passport.jpg "Grand Hotel Berlin"
 ```
 
 When provided with a file, `secure_passport` starts a lightweight ephemeral local bridge, preloads your scan into your default browser with the blacked-out MRZ and watermark ready, and gracefully exits.
