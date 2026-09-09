@@ -2,22 +2,13 @@
 
 # Dynamically resolve script directory even when executed via symlink
 SCRIPT_DIR="${0:A:h}"
-REDACT_BIN="$SCRIPT_DIR/redact_passport"
-
-# Auto-compile Swift binary if not present or if source has been modified
-if [ ! -f "$REDACT_BIN" ] || [ "$SCRIPT_DIR/redact_passport.swift" -nt "$REDACT_BIN" ]; then
-    swiftc "$SCRIPT_DIR/redact_passport.swift" -o "$REDACT_BIN"
-fi
 
 FILE_PATH="$1"
 HOTEL_NAME="$2"
-LAYOUT_CHOICE="$3"
 
 # 1. Determine file path:
 # a) From CLI argument $1
-# b) If no argument, from current Finder selection (if an image is selected)
-# c) If no image selected in Finder, open Finder file picker dialog
-
+# b) If no argument, from current Finder selection (if an image/PDF is selected)
 if [ -z "$FILE_PATH" ]; then
     FILE_PATH=$(osascript -e '
     tell application "Finder"
@@ -37,25 +28,21 @@ if [ -z "$FILE_PATH" ]; then
     ' 2>/dev/null)
 fi
 
+# 2. If still no file selected or found:
+# Gracefully open the online web application or local HTML
 if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
-    FILE_PATH=$(osascript -e '
-    tell application "Finder"
-        activate
-        set chosenFile to choose file with prompt "Select your passport image:"
-        return POSIX path of chosenFile
-    end tell
-    ' 2>/dev/null)
-fi
-
-if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
-    echo "[-] Error: No file selected and no valid file path provided."
-    echo "Usage: $0 [/path/to/passport_image.jpg] [Hotel Name]"
-    exit 1
+    echo "[+] No file specified. Opening GDPR Passport Masker in your browser..."
+    if [ -f "$SCRIPT_DIR/index.html" ]; then
+        open "https://erikwebb.github.io/tools/passport-masker/" 2>/dev/null || open "$SCRIPT_DIR/index.html"
+    else
+        open "https://erikwebb.github.io/tools/passport-masker/"
+    fi
+    exit 0
 fi
 
 echo "[+] Target File: $FILE_PATH"
 
-# 2. Determine Hotel Name (interactive prompt with default or fallback for loop testing)
+# 3. Determine Hotel Name (interactive prompt with default if running in terminal)
 if [ -z "$HOTEL_NAME" ]; then
     if [ -t 0 ]; then
         print -n "Enter the Hotel/Apartment Name [Default: Test Hotel]: "
@@ -66,19 +53,100 @@ if [ -z "$HOTEL_NAME" ]; then
     fi
 fi
 
-# Sanitize hotel name for filename placement
-HOTEL_CLEAN=$(echo "$HOTEL_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | sed 's/__*/_/g')
-if [ -z "$HOTEL_CLEAN" ]; then
-    HOTEL_CLEAN="hotel"
-fi
+echo "[+] Hotel / Accommodation: $HOTEL_NAME"
+echo "[+] Launching GDPR Passport Masker web interface..."
 
-# Setup target paths
-DESKTOP_PATH="$HOME/Desktop"
-FILE_NAME=$(basename "$FILE_PATH")
-TARGET_PATH="$DESKTOP_PATH/secured_${HOTEL_CLEAN}_$FILE_NAME"
+# 4. Launch ephemeral local Python bridge to preload the document into index.html
+python3 - "$FILE_PATH" "$HOTEL_NAME" "$SCRIPT_DIR" << 'PYEOF'
+import http.server
+import socketserver
+import json
+import base64
+import mimetypes
+import os
+import sys
+import threading
+import time
+import urllib.parse
+import webbrowser
 
-# Execute solid black-out censorship and watermark using compiled Swift redactor
-# Automatically detects single photo page vs two-page spread (or accepts optional override)
-"$REDACT_BIN" "$FILE_PATH" "$TARGET_PATH" "$HOTEL_NAME" "${LAYOUT_CHOICE:-auto}"
+file_path = sys.argv[1] if len(sys.argv) > 1 else ""
+hotel_name = sys.argv[2] if len(sys.argv) > 2 else ""
+script_dir = sys.argv[3] if len(sys.argv) > 3 else os.getcwd()
 
-echo "[+] Success! Redacted & watermarked copy saved to Desktop: secured_${HOTEL_CLEAN}_$FILE_NAME"
+payload = None
+if file_path and os.path.isfile(file_path):
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext == '.heic':
+        mime_type = 'image/heic'
+    elif ext == '.pdf':
+        mime_type = 'application/pdf'
+    elif ext in ('.jpg', '.jpeg'):
+        mime_type = 'image/jpeg'
+    elif ext == '.png':
+        mime_type = 'image/png'
+    elif ext == '.webp':
+        mime_type = 'image/webp'
+    else:
+        mime_type = mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+    
+    with open(file_path, 'rb') as f:
+        file_bytes = f.read()
+    
+    payload = {
+        'fileName': os.path.basename(file_path),
+        'mimeType': mime_type,
+        'hotelName': hotel_name,
+        'base64': base64.b64encode(file_bytes).decode('utf-8')
+    }
+
+class PreloadHandler(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=script_dir, **kwargs)
+
+    def log_message(self, format, *args):
+        pass # Suppress HTTP access logs for clean terminal output
+
+    def do_GET(self):
+        if self.path.startswith('/api/preload'):
+            if payload:
+                body = json.dumps(payload).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(body)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(body)
+            else:
+                self.send_response(404)
+                self.end_headers()
+            
+            # Shutdown server 2 seconds after preload is retrieved
+            threading.Thread(target=lambda: (time.sleep(2), httpd.shutdown()), daemon=True).start()
+            return
+        super().do_GET()
+
+httpd = socketserver.TCPServer(('127.0.0.1', 0), PreloadHandler)
+port = httpd.server_address[1]
+
+# Safety timer: shut down after 60 seconds if untouched
+threading.Timer(60.0, httpd.shutdown).start()
+
+url = f"http://127.0.0.1:{port}/"
+if payload:
+    query = {"preload": "1"}
+    if hotel_name:
+        query["hotel"] = hotel_name
+    url += "?" + urllib.parse.urlencode(query)
+
+print(f"[+] Loaded scan in browser: {url}")
+webbrowser.open(url)
+
+try:
+    httpd.serve_forever()
+except KeyboardInterrupt:
+    pass
+finally:
+    httpd.server_close()
+    print("[+] Bridge complete. Redaction active in your browser!")
+PYEOF

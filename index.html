@@ -485,6 +485,40 @@
         URL.revokeObjectURL(link.href);
       }, 'image/png');
     });
+
+    // Handle CLI bridge and query parameters
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('hotel')) {
+        hotelInput.value = params.get('hotel');
+        hotelInput.dispatchEvent(new Event('input'));
+      }
+
+      if (params.get('preload') === '1') {
+        showLoading(true, 'Preloading passport scan...');
+        fetch('/api/preload')
+          .then(r => r.json())
+          .then(async (data) => {
+            if (data.hotelName) {
+              hotelInput.value = data.hotelName;
+              hotelInput.dispatchEvent(new Event('input'));
+            }
+            const byteChars = atob(data.base64);
+            const byteNums = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) {
+              byteNums[i] = byteChars.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNums);
+            const blob = new Blob([byteArray], { type: data.mimeType });
+            const file = new File([blob], data.fileName, { type: data.mimeType });
+            await handleSelectedFile(file);
+          })
+          .catch(err => {
+            console.log('No preload data or running standalone:', err);
+            showLoading(false);
+          });
+      }
+    });
   </script>
 
 </body>
