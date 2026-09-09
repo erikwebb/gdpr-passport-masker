@@ -52,6 +52,13 @@ ln -sf "$PWD/gdpr_passport_masker.sh" ~/bin/secure_passport
 
 ---
 
+## Disclaimer
+
+> [!WARNING]
+> **Experimental / AI-Generated Tool**: This application is **100% LLM-generated** (created using Gemini / Antigravity). It is provided strictly on an "as-is" basis with **no promise or guarantee of quality, accuracy, reliability, or legal fitness**. Always review and verify your masked and watermarked documents manually prior to sharing them.
+
+---
+
 ## License & Author
 
 Created by [Erik Webb](https://erikwebb.github.io/) — Software Architect & Engineering Leader.  
